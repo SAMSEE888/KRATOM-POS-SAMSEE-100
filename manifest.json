@@ -1,71 +1,88 @@
 {
-  "name": "KRATOM S.SAMSEE · Production Calculator & POS",
-  "short_name": "Kratom POS",
-  "description": "ระบบบริหารจัดการผลิตและจำหน่ายน้ำกระท่อม S.SAMSEE · v16.0 Production",
-  "lang": "th",
-  "dir": "ltr",
-  "id": "/kratom-pos-v16",
+  "name": "KRATOM POS · ท่อมกันเอง ส.สามสี",
+  "short_name": "KRATOM POS",
+  "description": "ระบบบริหารจัดการผลิตและจำหน่ายน้ำกระท่อม S.SAMSEE · POS · BI Dashboard",
+  "id": "/kratom-pos/",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
-  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "display_override": ["standalone", "minimal-ui"],
   "orientation": "portrait-primary",
-  "background_color": "#000000",
   "theme_color": "#000000",
-  "categories": ["productivity", "business", "utilities", "finance"],
+  "background_color": "#000000",
+  "lang": "th-TH",
+  "dir": "ltr",
+  "categories": ["business", "productivity", "finance"],
   "prefer_related_applications": false,
-  "handle_links": "preferred",
-  "launch_handler": {
-    "client_mode": "navigate-existing"
-  },
   "icons": [
     {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%2310b981'/%3E%3Ctext x='50' y='68' font-size='55' text-anchor='middle'%3E🍃%3C/text%3E%3C/svg%3E",
-      "sizes": "any",
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 72'%3E%3Crect width='72' height='72' rx='16' fill='%2310b981'/%3E%3Ctext x='36' y='50' font-size='40' text-anchor='middle'%3E🍃%3C/text%3E%3C/svg%3E",
+      "sizes": "72x72",
       "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%2310b981'/%3E%3Ctext x='50' y='62' font-size='42' text-anchor='middle'%3E🍃%3C/text%3E%3C/svg%3E",
-      "sizes": "any",
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='22' fill='%2310b981'/%3E%3Ctext x='48' y='66' font-size='54' text-anchor='middle'%3E🍃%3C/text%3E%3C/svg%3E",
+      "sizes": "96x96",
       "type": "image/svg+xml",
-      "purpose": "maskable"
+      "purpose": "any"
     },
     {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23000000'/%3E%3Ctext x='50' y='68' font-size='55' text-anchor='middle' fill='%23ffffff'%3E🍃%3C/text%3E%3C/svg%3E",
-      "sizes": "any",
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Crect width='128' height='128' rx='28' fill='%2310b981'/%3E%3Ctext x='64' y='88' font-size='72' text-anchor='middle'%3E🍃%3C/text%3E%3C/svg%3E",
+      "sizes": "128x128",
       "type": "image/svg+xml",
-      "purpose": "monochrome"
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 144 144'%3E%3Crect width='144' height='144' rx='32' fill='%2310b981'/%3E%3Ctext x='72' y='99' font-size='81' text-anchor='middle'%3E🍃%3C/text%3E%3C/svg%3E",
+      "sizes": "144x144",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='42' fill='%2310b981'/%3E%3Ctext x='96' y='132' font-size='108' text-anchor='middle'%3E🍃%3C/text%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Crect width='256' height='256' rx='56' fill='%2310b981'/%3E%3Ctext x='128' y='176' font-size='144' text-anchor='middle'%3E🍃%3C/text%3E%3C/svg%3E",
+      "sizes": "256x256",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='112' fill='%2310b981'/%3E%3Ctext x='256' y='352' font-size='288' text-anchor='middle'%3E🍃%3C/text%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
     }
   ],
   "shortcuts": [
     {
       "name": "ขายหน้าร้าน (POS)",
-      "short_name": "ขาย POS",
-      "description": "เปิดหน้าจอขายทันที",
-      "url": "./index.html#pos",
-      "icons": [{ "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%2310b981'/%3E%3Ctext x='50' y='68' font-size='55' text-anchor='middle'%3E🛒%3C/text%3E%3C/svg%3E", "sizes": "any", "type": "image/svg+xml" }]
+      "short_name": "POS",
+      "description": "เปิดหน้าขายทันที",
+      "url": "./index.html#posPanel",
+      "icons": [{
+        "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='22' fill='%2310b981'/%3E%3Ctext x='48' y='66' font-size='54' text-anchor='middle'%3E🛒%3C/text%3E%3C/svg%3E",
+        "sizes": "96x96",
+        "type": "image/svg+xml"
+      }]
     },
     {
-      "name": "เครื่องคิดเลขต้ม",
-      "short_name": "ต้มน้ำดิบ",
-      "description": "คำนวณการต้มน้ำดิบ",
-      "url": "./index.html#brew",
-      "icons": [{ "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%2310b981'/%3E%3Ctext x='50' y='68' font-size='55' text-anchor='middle'%3E🧪%3C/text%3E%3C/svg%3E", "sizes": "any", "type": "image/svg+xml" }]
-    },
-    {
-      "name": "เครื่องคิดเลขผสม",
-      "short_name": "ผสมสูตร",
-      "description": "คำนวณการผสมสูตร",
-      "url": "./index.html#mix",
-      "icons": [{ "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%2306b6d4'/%3E%3Ctext x='50' y='68' font-size='55' text-anchor='middle'%3E🥤%3C/text%3E%3C/svg%3E", "sizes": "any", "type": "image/svg+xml" }]
-    },
-    {
-      "name": "BI",
-      "short_name": "BI",
-      "description": "ภาพรวมธุรกิจ",
-      "url": "./index.html#analytics",
-      "icons": [{ "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%238b5cf6'/%3E%3Ctext x='50' y='68' font-size='55' text-anchor='middle'%3E📊%3C/text%3E%3C/svg%3E", "sizes": "any", "type": "image/svg+xml" }]
+      "name": "Dashboard (BI)",
+      "short_name": "Dashboard",
+      "description": "เปิดหน้า Dashboard",
+      "url": "./dashboard.html",
+      "icons": [{
+        "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='22' fill='%233b82f6'/%3E%3Ctext x='48' y='66' font-size='54' text-anchor='middle'%3E📊%3C/text%3E%3C/svg%3E",
+        "sizes": "96x96",
+        "type": "image/svg+xml"
+      }]
     }
-  ]
+  ],
+  "launch_handler": {
+    "client_mode": ["focus-existing", "auto"]
+  }
 }

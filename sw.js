@@ -1,215 +1,165 @@
-/* ============================================================================
-   KRATOM S.SAMSEE · Service Worker v16.0.0
-   Strategy: Cache-First static · Network-First HTML · SWR for CDN
-   ✅ FIXED: ไม่ cache Apps Script API · timeout 5s
-   ============================================================================ */
+/**
+ * ============================================================================
+ * KRATOM POS — Service Worker v16.0.3
+ * ============================================================================
+ * Cache Strategy:
+ *   - App Shell (HTML/JS): Network-First (get latest)
+ *   - API (Code.gs): Network-Only
+ *   - CDN: Stale-While-Revalidate
+ * ============================================================================
+ */
+const VERSION = 'kratom-pos-v16.0.3';
+const CACHE_NAME = VERSION;
+const RUNTIME_CACHE = 'kratom-runtime-v16.0.3';
 
-const CACHE_VERSION = 'kratom-v16.0.0';
-const CACHE_STATIC = `${CACHE_VERSION}-static`;
-const CACHE_DYNAMIC = `${CACHE_VERSION}-dynamic`;
-const CACHE_CDN = `${CACHE_VERSION}-cdn`;
-
-const PRECACHE_URLS = [
+const APP_SHELL = [
   './',
   './index.html',
+  './dashboard.html',
+  './web-console.js',
   './manifest.json'
 ];
 
-const CDN_HOSTS = [
-  'fonts.googleapis.com',
-  'fonts.gstatic.com',
-  'cdn.tailwindcss.com',
-  'cdnjs.cloudflare.com',
-  'cdn.jsdelivr.net'
+const CDN_CACHE = [
+  'https://cdn.tailwindcss.com',
+  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css',
+  'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js'
 ];
 
-// ✅ ไม่ cache Apps Script
-const BYPASS_HOSTS = [
-  'script.google.com',
-  'script.googleusercontent.com',
-  'googleusercontent.com'
-];
-
-// ✅ ลด timeout เป็น 5s
-const NETWORK_TIMEOUT = 5000;
-
-/* ============ INSTALL ============ */
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing:', CACHE_VERSION);
-  event.waitUntil((async () => {
-    const cache = await caches.open(CACHE_STATIC);
-    try {
-      await cache.addAll(PRECACHE_URLS);
-      console.log('[SW] Precache OK');
-    } catch (err) {
-      console.warn('[SW] Precache partial:', err);
-      for (const url of PRECACHE_URLS) {
-        try {
-          const response = await fetch(url, { cache: 'no-cache' });
-          if (response && response.status === 200) await cache.put(url, response);
-        } catch (e) { console.warn('[SW] Failed:', url, e); }
+  console.log('[SW] Installing v' + VERSION);
+  event.waitUntil(
+    (async () => {
+      const cache = await caches.open(CACHE_NAME);
+      for (const url of APP_SHELL) {
+        try { await cache.add(url); console.log('[SW] Cached:', url); }
+        catch (err) { console.warn('[SW] Failed to cache:', url); }
       }
-    }
-    await self.skipWaiting();
-  })());
+      await Promise.allSettled(CDN_CACHE.map(url => cache.add(url).catch(err => console.warn('[SW] CDN skip:', url))));
+      await self.skipWaiting();
+      console.log('[SW] Install complete');
+    })()
+  );
 });
 
-/* ============ ACTIVATE ============ */
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating:', CACHE_VERSION);
-  event.waitUntil((async () => {
-    const cacheNames = await caches.keys();
-    const oldCaches = cacheNames.filter(name =>
-      name.startsWith('kratom-') &&
-      name !== CACHE_STATIC && name !== CACHE_DYNAMIC && name !== CACHE_CDN
-    );
-    await Promise.all(oldCaches.map(name => {
-      console.log('[SW] Deleting:', name);
-      return caches.delete(name);
-    }));
-    if (self.registration.navigationPreload) {
-      try { await self.registration.navigationPreload.enable(); } catch (e) {}
-    }
-    await self.clients.claim();
-    console.log('[SW] Activated');
-    const clients = await self.clients.matchAll({ type: 'window' });
-    clients.forEach(client => {
-      client.postMessage({ type: 'SW_ACTIVATED', version: CACHE_VERSION, timestamp: Date.now() });
-    });
-  })());
+  console.log('[SW] Activating v' + VERSION);
+  event.waitUntil(
+    (async () => {
+      const keys = await caches.keys();
+      await Promise.all(keys.map(key => {
+        if (key !== CACHE_NAME && key !== RUNTIME_CACHE) {
+          console.log('[SW] Removing old cache:', key);
+          return caches.delete(key);
+        }
+      }));
+      await self.clients.claim();
+      const clients = await self.clients.matchAll({ type: 'window' });
+      clients.forEach(client => client.postMessage({ type: 'SW_UPDATED', version: VERSION }));
+      console.log('[SW] Activate complete');
+    })()
+  );
 });
 
-/* ============ MESSAGE ============ */
-self.addEventListener('message', (event) => {
-  const data = event.data || {};
-  switch (data.type) {
-    case 'SKIP_WAITING': self.skipWaiting(); break;
-    case 'GET_VERSION': event.ports[0]?.postMessage({ version: CACHE_VERSION }); break;
-    case 'CLEAR_CACHE':
-      event.waitUntil((async () => {
-        const keys = await caches.keys();
-        await Promise.all(keys.filter(k => k.startsWith('kratom-')).map(k => caches.delete(k)));
-        event.ports[0]?.postMessage({ success: true });
-      })());
-      break;
-  }
-});
-
-/* ============ FETCH ============ */
 self.addEventListener('fetch', (event) => {
-  const { request } = event;
-  const url = new URL(request.url);
-  
-  if (request.method !== 'GET') return;
-  if (url.protocol === 'chrome-extension:' || url.protocol === 'data:' || url.protocol === 'blob:') return;
-  if (!url.protocol.startsWith('http')) return;
-  
-  // ✅ BYPASS Apps Script และ Google APIs — ไม่ cache เลย
-  if (BYPASS_HOSTS.some(host => url.hostname.includes(host))) {
-    return;  // ปล่อยให้ browser จัดการ (network only)
+  const req = event.request;
+  const url = new URL(req.url);
+  if (req.method !== 'GET') return;
+  if (url.protocol === 'ws:' || url.protocol === 'wss:') return;
+
+  // API → Network-Only
+  if (url.hostname === 'script.google.com' || url.hostname === 'script.googleusercontent.com') {
+    event.respondWith(networkOnly(req));
+    return;
   }
-  
-  if (request.mode === 'navigate' || url.pathname.endsWith('.html') || url.pathname === '/') {
-    event.respondWith(networkFirstHTML(request));
-  } else if (CDN_HOSTS.some(host => url.hostname.includes(host))) {
-    event.respondWith(staleWhileRevalidate(request, CACHE_CDN));
-  } else if (url.origin === self.location.origin) {
-    event.respondWith(cacheFirstDynamic(request, CACHE_STATIC));
-  } else {
-    event.respondWith(staleWhileRevalidate(request, CACHE_DYNAMIC));
+
+  // LINE API → skip
+  if (url.hostname.includes('line.me') || url.hostname.includes('line-scdn.net')) return;
+
+  // Same origin HTML/JS → Network-First
+  if (url.origin === self.location.origin) {
+    if (url.pathname.endsWith('.html') || url.pathname === '/' || url.pathname.endsWith('.json') || url.pathname.endsWith('.js')) {
+      event.respondWith(networkFirst(req));
+      return;
+    }
+    event.respondWith(cacheFirst(req));
+    return;
   }
+
+  // CDN → Stale-While-Revalidate
+  if (url.hostname.includes('cdn.') || url.hostname.includes('fonts.') || url.hostname.includes('cdnjs.') || url.hostname.includes('jsdelivr.') || url.hostname.includes('tailwindcss.com')) {
+    event.respondWith(staleWhileRevalidate(req));
+    return;
+  }
+
+  event.respondWith(networkFirst(req));
 });
 
-/* ============ STRATEGIES ============ */
-async function networkFirstHTML(request) {
-  const cache = await caches.open(CACHE_STATIC);
+async function networkFirst(req) {
   try {
-    const networkResponse = await Promise.race([
-      fetch(request),
-      new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), NETWORK_TIMEOUT))
-    ]);
-    if (networkResponse && networkResponse.status === 200) {
-      cache.put(request, networkResponse.clone());
-      try { cache.put('./index.html', networkResponse.clone()); } catch (e) {}
+    const res = await fetch(req, { cache: 'no-cache' });
+    if (res && res.status === 200) {
+      const cache = await caches.open(RUNTIME_CACHE);
+      cache.put(req, res.clone()).catch(() => {});
     }
-    return networkResponse;
+    return res;
   } catch (err) {
-    console.log('[SW] Network failed, cache fallback:', err.message);
-    const cached = await cache.match(request);
-    if (cached) return cached;
-    const fallback = await cache.match('./index.html');
-    if (fallback) return fallback;
-    return new Response(
-      '<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Offline · KRATOM</title><style>body{font-family:system-ui,sans-serif;background:#000;color:#e5e7eb;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;text-align:center}.box{padding:40px;max-width:400px}.icon{font-size:64px;margin-bottom:20px}h1{color:#10b981;font-size:24px;margin:0 0 12px}p{color:#9ca3af;margin:0 0 20px}button{background:linear-gradient(135deg,#10b981,#059669);color:white;border:none;padding:12px 32px;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer}button:active{transform:scale(.97)}</style></head><body><div class="box"><div class="icon">🍃</div><h1>ออฟไลน์</h1><p>ไม่สามารถเชื่อมต่อได้<br>กรุณาตรวจสอบอินเทอร์เน็ต</p><button onclick="location.reload()">🔄 ลองใหม่</button></div></body></html>',
-      { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
-    );
+    const cached = await caches.match(req);
+    if (cached) {
+      console.log('[SW] Offline fallback:', req.url);
+      return cached;
+    }
+    if (req.headers.get('accept')?.includes('text/html')) {
+      return caches.match('./index.html') || new Response('ออฟไลน์', { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+    }
+    return new Response('ออฟไลน์', { status: 503 });
   }
 }
 
-async function cacheFirstDynamic(request, cacheName) {
-  const cache = await caches.open(cacheName);
-  const cached = await cache.match(request);
+async function cacheFirst(req) {
+  const cached = await caches.match(req);
   if (cached) return cached;
   try {
-    const response = await fetch(request);
-    if (response && (response.status === 200 || response.type === 'opaque')) {
-      cache.put(request, response.clone());
+    const res = await fetch(req);
+    if (res && res.status === 200) {
+      const cache = await caches.open(RUNTIME_CACHE);
+      cache.put(req, res.clone()).catch(() => {});
     }
-    return response;
+    return res;
   } catch (err) {
-    console.log('[SW] Fetch failed:', request.url);
-    return new Response('', { status: 408, statusText: 'Offline' });
+    return new Response('ไม่พบไฟล์', { status: 404 });
   }
 }
 
-async function staleWhileRevalidate(request, cacheName) {
-  const cache = await caches.open(cacheName);
-  const cached = await cache.match(request);
-  const fetchPromise = fetch(request).then(response => {
-    if (response && (response.status === 200 || response.type === 'opaque')) {
-      cache.put(request, response.clone());
-    }
-    return response;
-  }).catch(err => {
-    console.warn('[SW] SWR fetch failed:', request.url, err);
-    return null;
-  });
-  return cached || (await fetchPromise) || new Response('', { status: 504 });
+async function networkOnly(req) {
+  try { return await fetch(req); }
+  catch (err) {
+    return new Response(JSON.stringify({ status: 'error', message: 'ออฟไลน์' }), { status: 503, headers: { 'Content-Type': 'application/json' } });
+  }
 }
 
-/* ============ PUSH ============ */
-self.addEventListener('push', (event) => {
-  if (!event.data) return;
-  let data;
-  try { data = event.data.json(); }
-  catch (e) { data = { title: 'KRATOM', body: event.data.text() }; }
-  const options = {
-    body: data.body || 'KRATOM S.SAMSEE',
-    icon: data.icon || undefined,
-    badge: data.badge || undefined,
-    tag: data.tag || 'kratom-notification',
-    renotify: true,
-    vibrate: [100, 50, 100],
-    data: { url: data.url || './', timestamp: Date.now() }
-  };
-  event.waitUntil(self.registration.showNotification(data.title || 'KRATOM', options));
-});
-
-self.addEventListener('notificationclick', (event) => {
-  event.notification.close();
-  const url = event.notification.data?.url || './';
-  event.waitUntil((async () => {
-    const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
-    for (const client of clients) {
-      if (client.url.includes(self.location.origin) && 'focus' in client) {
-        await client.focus();
-        if ('navigate' in client) return client.navigate(url);
-        return;
-      }
+async function staleWhileRevalidate(req) {
+  const cached = await caches.match(req);
+  const fetchPromise = fetch(req).then(res => {
+    if (res && res.status === 200) {
+      caches.open(RUNTIME_CACHE).then(c => c.put(req, res.clone())).catch(() => {});
     }
-    if (self.clients.openWindow) return self.clients.openWindow(url);
-  })());
+    return res;
+  }).catch(() => null);
+  return cached || await fetchPromise || new Response('ไม่พบ', { status: 404 });
+}
+
+self.addEventListener('message', (event) => {
+  const data = event.data || {};
+  if (data.type === 'SKIP_WAITING') self.skipWaiting();
+  if (data.type === 'CLEAR_CACHE') {
+    caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k)))).then(() => {
+      event.source?.postMessage({ type: 'CACHE_CLEARED' });
+    });
+  }
+  if (data.type === 'GET_VERSION') {
+    event.source?.postMessage({ type: 'VERSION', version: VERSION });
+  }
 });
 
-console.log('[SW] Loaded:', CACHE_VERSION);
-console.log('[SW] BYPASS Google APIs · timeout 5s');
+console.log('[SW] v' + VERSION + ' loaded');
